@@ -1,36 +1,95 @@
 import 'package:flutter/material.dart';
 
+import 'package:autolavado_app/app/dependencies.dart';
 import 'package:autolavado_app/core/utils/formatters.dart';
 import 'package:autolavado_app/features/booking/screens/date_selection_screen.dart';
-import 'package:autolavado_app/features/services/data/sample_services.dart';
 import 'package:autolavado_app/features/services/models/wash_service.dart';
 
-class ServiceSelectionScreen extends StatelessWidget {
+class ServiceSelectionScreen extends StatefulWidget {
   const ServiceSelectionScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Solo servicios activos, ordenados por sortOrder.
-    final services = sampleServices.where((s) => s.isActive).toList()
-      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+  State<ServiceSelectionScreen> createState() => _ServiceSelectionScreenState();
+}
 
+class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
+  late Future<List<WashService>> _servicesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    // Se pide UNA vez, al abrir la pantalla.
+    _servicesFuture = serviceRepository.getActiveServices();
+  }
+
+  void _retry() {
+    setState(() {
+      _servicesFuture = serviceRepository.getActiveServices();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Elige tu servicio'),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: services.length,
-        itemBuilder: (context, index) {
-          final service = services[index];
-          return _ServiceCard(
-            service: service,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => DateSelectionScreen(service: service),
+      body: FutureBuilder<List<WashService>>(
+        future: _servicesFuture,
+        builder: (context, snapshot) {
+          // 1. Cargando
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // 2. Error
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'No pudimos cargar los servicios.',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _retry,
+                      child: const Text('Reintentar'),
+                    ),
+                  ],
                 ),
+              ),
+            );
+          }
+
+          // 3. Datos
+          final services = snapshot.data ?? [];
+
+          if (services.isEmpty) {
+            return const Center(
+              child: Text('Por ahora no hay servicios disponibles.'),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: services.length,
+            itemBuilder: (context, index) {
+              final service = services[index];
+              return _ServiceCard(
+                service: service,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          DateSelectionScreen(service: service),
+                    ),
+                  );
+                },
               );
             },
           );
