@@ -21,3 +21,10 @@ String formatDuration(int minutes) {
   if (rest == 0) return '$hours h';
   return '$hours h $rest min';
 }
+
+/// Fecha larga en español de México, con mayúscula inicial.
+/// 2026-10-21 -> "Miércoles 21 de octubre"
+String formatLongDate(DateTime date) {
+  final text = DateFormat("EEEE d 'de' MMMM", 'es_MX').format(date);
+  return text[0].toUpperCase() + text.substring(1);
+}
