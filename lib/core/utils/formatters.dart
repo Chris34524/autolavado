@@ -28,3 +28,13 @@ String formatLongDate(DateTime date) {
   final text = DateFormat("EEEE d 'de' MMMM", 'es_MX').format(date);
   return text[0].toUpperCase() + text.substring(1);
 }
+
+/// Hora del día (minutos desde medianoche) en formato de 12 horas.
+/// 630 -> "10:30 a. m."   |   900 -> "3:00 p. m."
+String formatClock(int minutesSinceMidnight) {
+  final hour24 = minutesSinceMidnight ~/ 60;
+  final minute = minutesSinceMidnight % 60;
+  final suffix = hour24 < 12 ? 'a. m.' : 'p. m.';
+  final hour12 = hour24 % 12 == 0 ? 12 : hour24 % 12;
+  return '$hour12:${minute.toString().padLeft(2, '0')} $suffix';
+}

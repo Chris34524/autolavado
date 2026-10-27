@@ -25,4 +25,11 @@ void main() {
       expect(formatLongDate(DateTime(2026, 10, 21)), 'Miércoles 21 de octubre');
     });
   });
+
+  group('formatClock', () {
+    test('mañana', () => expect(formatClock(630), '10:30 a. m.'));
+    test('tarde', () => expect(formatClock(900), '3:00 p. m.'));
+    test('mediodía', () => expect(formatClock(720), '12:00 p. m.'));
+    test('medianoche', () => expect(formatClock(0), '12:00 a. m.'));
+  });
 }

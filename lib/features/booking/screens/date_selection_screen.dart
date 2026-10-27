@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:autolavado_app/app/dependencies.dart';
 import 'package:autolavado_app/core/utils/formatters.dart';
+import 'package:autolavado_app/features/booking/screens/time_selection_screen.dart';
 import 'package:autolavado_app/features/services/models/wash_service.dart';
-
-/// PROVISIONAL: cuántos días hacia adelante se puede reservar.
-/// Vendrá de la configuración del negocio en Firestore.
-const int kBookingWindowDays = 30;
 
 class DateSelectionScreen extends StatefulWidget {
   const DateSelectionScreen({
@@ -24,18 +22,40 @@ class _DateSelectionScreenState extends State<DateSelectionScreen> {
   /// Día elegido (sin hora). null = todavía no elige.
   DateTime? _selectedDate;
 
-  /// PROVISIONAL: aquí se excluirán días no laborables y bloqueados.
-  /// Por ahora todos los días son seleccionables.
-  bool _isSelectableDay(DateTime day) => true;
+  /// Solo días en que el negocio abre. Los festivos y bloqueos de día
+  /// completo se verán en la pantalla de horarios (sin horarios libres).
+  bool _isSelectableDay(DateTime day) => businessSchedule.isOpenOn(day.weekday);
+
+  /// Primer día que se puede elegir entre [from] y [last], o null si no hay.
+  DateTime? _firstSelectableDay(DateTime from, DateTime last) {
+    for (var day = from;
+        !day.isAfter(last);
+        day = DateUtils.addDaysToDate(day, 1)) {
+      if (_isSelectableDay(day)) return day;
+    }
+    return null;
+  }
 
   Future<void> _pickDate() async {
     final today = DateUtils.dateOnly(DateTime.now());
+    final lastDate =
+        DateUtils.addDaysToDate(today, businessSchedule.bookingWindowDays);
+
+    // El calendario exige que el día inicial sea seleccionable:
+    // si hoy está cerrado (por ejemplo, domingo), empezamos en el siguiente.
+    final initialDate = _selectedDate ?? _firstSelectableDay(today, lastDate);
+    if (initialDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por ahora no hay días disponibles.')),
+      );
+      return;
+    }
 
     final picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate ?? today,
+      initialDate: initialDate,
       firstDate: today,
-      lastDate: today.add(const Duration(days: kBookingWindowDays)),
+      lastDate: lastDate,
       selectableDayPredicate: _isSelectableDay,
       helpText: 'Elige el día de tu lavado',
     );
@@ -51,13 +71,12 @@ class _DateSelectionScreenState extends State<DateSelectionScreen> {
   }
 
   void _continue() {
-    // PROVISIONAL: aquí navegaremos a la pantalla de horarios (tarea #12),
-    // pasando servicio + fecha.
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Fecha elegida: ${formatLongDate(_selectedDate!)}. '
-          'Los horarios llegan en el siguiente paso.',
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TimeSelectionScreen(
+          service: widget.service,
+          date: _selectedDate!,
         ),
       ),
     );
