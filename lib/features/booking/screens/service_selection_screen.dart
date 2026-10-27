@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:autolavado_app/app/dependencies.dart';
 import 'package:autolavado_app/core/utils/formatters.dart';
+import 'package:autolavado_app/features/booking/domain/booking_draft.dart';
 import 'package:autolavado_app/features/booking/screens/date_selection_screen.dart';
 import 'package:autolavado_app/features/services/models/wash_service.dart';
 
@@ -82,11 +83,13 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
               return _ServiceCard(
                 service: service,
                 onTap: () {
+                  // Aquí nace el borrador de la reserva.
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          DateSelectionScreen(service: service),
+                      builder: (context) => DateSelectionScreen(
+                        draft: BookingDraft(service: service),
+                      ),
                     ),
                   );
                 },

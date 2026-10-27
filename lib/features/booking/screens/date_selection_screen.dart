@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 
 import 'package:autolavado_app/app/dependencies.dart';
 import 'package:autolavado_app/core/utils/formatters.dart';
+import 'package:autolavado_app/features/booking/domain/booking_draft.dart';
 import 'package:autolavado_app/features/booking/screens/time_selection_screen.dart';
-import 'package:autolavado_app/features/services/models/wash_service.dart';
 
 class DateSelectionScreen extends StatefulWidget {
   const DateSelectionScreen({
     super.key,
-    required this.service,
+    required this.draft,
   });
 
-  /// El servicio que el cliente eligió en la pantalla anterior.
-  final WashService service;
+  /// Lo que el cliente lleva elegido (por ahora, el servicio).
+  final BookingDraft draft;
 
   @override
   State<DateSelectionScreen> createState() => _DateSelectionScreenState();
@@ -20,7 +20,7 @@ class DateSelectionScreen extends StatefulWidget {
 
 class _DateSelectionScreenState extends State<DateSelectionScreen> {
   /// Día elegido (sin hora). null = todavía no elige.
-  DateTime? _selectedDate;
+  late DateTime? _selectedDate = widget.draft.date;
 
   /// Solo días en que el negocio abre. Los festivos y bloqueos de día
   /// completo se verán en la pantalla de horarios (sin horarios libres).
@@ -75,8 +75,8 @@ class _DateSelectionScreenState extends State<DateSelectionScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => TimeSelectionScreen(
-          service: widget.service,
-          date: _selectedDate!,
+          // Borrador nuevo = el anterior + la fecha.
+          draft: widget.draft.withDate(_selectedDate!),
         ),
       ),
     );
@@ -84,7 +84,7 @@ class _DateSelectionScreenState extends State<DateSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final service = widget.service;
+    final service = widget.draft.service;
     final date = _selectedDate;
 
     return Scaffold(

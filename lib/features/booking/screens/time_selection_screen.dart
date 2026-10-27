@@ -3,28 +3,27 @@ import 'package:flutter/material.dart';
 import 'package:autolavado_app/app/dependencies.dart';
 import 'package:autolavado_app/core/utils/formatters.dart';
 import 'package:autolavado_app/features/booking/domain/availability_calculator.dart';
-import 'package:autolavado_app/features/booking/domain/service_location.dart';
+import 'package:autolavado_app/features/booking/domain/booking_draft.dart';
 import 'package:autolavado_app/features/booking/domain/time_range.dart';
-import 'package:autolavado_app/features/services/models/wash_service.dart';
 
 class TimeSelectionScreen extends StatefulWidget {
   const TimeSelectionScreen({
     super.key,
-    required this.service,
-    required this.date,
+    required this.draft,
   });
 
-  final WashService service;
-  final DateTime date;
+  /// Lo que el cliente lleva elegido. Debe incluir la fecha.
+  final BookingDraft draft;
 
   @override
   State<TimeSelectionScreen> createState() => _TimeSelectionScreenState();
 }
 
 class _TimeSelectionScreenState extends State<TimeSelectionScreen> {
-  // PROVISIONAL: por ahora solo en el local.
-  // La elección local/domicilio llega en la tarea #14, antes de esta pantalla.
-  static const ServiceLocation _location = ServiceLocation.shop;
+  BookingDraft get _draft => widget.draft;
+
+  /// Esta pantalla solo se abre después de elegir fecha.
+  DateTime get _date => _draft.date!;
 
   late Future<List<int>> _slotsFuture;
 
@@ -39,15 +38,16 @@ class _TimeSelectionScreenState extends State<TimeSelectionScreen> {
   }
 
   Future<List<int>> _loadSlots() async {
-    final occupancy = await occupancyRepository.getDayOccupancy(widget.date);
+    final occupancy = await occupancyRepository.getDayOccupancy(_date);
     final calculator = AvailabilityCalculator(businessSchedule);
     return calculator.availableStartTimes(
-      day: widget.date,
+      day: _date,
       // PROVISIONAL: hora del dispositivo. La validación definitiva la hará
       // el backend con la zona America/Mexico_City.
       now: DateTime.now(),
-      durationMinutes: widget.service.durationMinutes,
-      location: _location,
+      durationMinutes: _draft.service.durationMinutes,
+      // PROVISIONAL: siempre local hasta la tarea #14.
+      location: _draft.location,
       occupancy: occupancy,
     );
   }
@@ -64,13 +64,15 @@ class _TimeSelectionScreenState extends State<TimeSelectionScreen> {
   }
 
   void _continue() {
-    // PROVISIONAL: en la tarea #13 juntaremos servicio + fecha + hora
-    // en un BookingDraft y seguiremos a la siguiente pantalla.
+    // Borrador nuevo = el anterior + la hora.
+    final draft = _draft.withStartTime(_selectedStart!);
+
+    // PROVISIONAL: aquí seguiremos a la siguiente pantalla del flujo.
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          '${formatLongDate(widget.date)} a las '
-          '${formatClock(_selectedStart!)}. Lo siguiente llega pronto.',
+          '${draft.service.name}: ${formatLongDate(draft.date!)} a las '
+          '${formatClock(draft.startMinutes!)}. Lo siguiente llega pronto.',
         ),
       ),
     );
@@ -78,7 +80,7 @@ class _TimeSelectionScreenState extends State<TimeSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final service = widget.service;
+    final service = _draft.service;
 
     return Scaffold(
       appBar: AppBar(
@@ -95,7 +97,7 @@ class _TimeSelectionScreenState extends State<TimeSelectionScreen> {
                   leading: const Icon(Icons.event_available),
                   title: Text(service.name),
                   subtitle: Text(
-                    '${formatLongDate(widget.date)} · '
+                    '${formatLongDate(_date)} · '
                     '${formatDuration(service.durationMinutes)}',
                   ),
                 ),
