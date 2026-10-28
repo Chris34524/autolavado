@@ -9,4 +9,4 @@ const String businessName = 'Autolavado'; // PROVISIONAL
 /// PROVISIONAL: mientras sea null, WhatsApp abrirá su lista de contactos
 /// para que el cliente elija a quién enviar el mensaje.
 /// Para probar, puedes poner aquí TU propio número.
-const String? businessWhatsappNumber = null;
+const String? businessWhatsappNumber = '4741023986';
