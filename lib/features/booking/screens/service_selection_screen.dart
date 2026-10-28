@@ -4,6 +4,7 @@ import 'package:autolavado_app/app/dependencies.dart';
 import 'package:autolavado_app/core/utils/formatters.dart';
 import 'package:autolavado_app/features/booking/domain/booking_draft.dart';
 import 'package:autolavado_app/features/booking/screens/date_selection_screen.dart';
+import 'package:autolavado_app/features/booking/screens/location_selection_screen.dart';
 import 'package:autolavado_app/features/services/models/wash_service.dart';
 
 class ServiceSelectionScreen extends StatefulWidget {
@@ -84,13 +85,17 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
                 service: service,
                 onTap: () {
                   // Aquí nace el borrador de la reserva.
+                  final draft = BookingDraft(service: service);
+
+                  // Si el servicio también va a domicilio, primero
+                  // preguntamos dónde; si no, directo a la fecha.
+                  final Widget next = service.availableAtHome
+                      ? LocationSelectionScreen(draft: draft)
+                      : DateSelectionScreen(draft: draft);
+
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => DateSelectionScreen(
-                        draft: BookingDraft(service: service),
-                      ),
-                    ),
+                    MaterialPageRoute(builder: (context) => next),
                   );
                 },
               );

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:autolavado_app/features/booking/domain/booking_draft.dart';
+import 'package:autolavado_app/features/booking/domain/home_address.dart';
 import 'package:autolavado_app/features/booking/domain/service_location.dart';
 import 'package:autolavado_app/features/booking/domain/time_range.dart';
 import 'package:autolavado_app/features/services/models/wash_service.dart';
@@ -21,6 +22,8 @@ const shopAndHome = WashService(
   durationMinutes: 60,
   availableAtHome: true,
 );
+
+const address = HomeAddress(street: 'Av. Juárez 123', neighborhood: 'Centro');
 
 void main() {
   test('un borrador nuevo solo tiene el servicio', () {
@@ -65,16 +68,42 @@ void main() {
     final draft = const BookingDraft(service: shopAndHome)
         .withDate(DateTime(2026, 10, 26))
         .withStartTime(minutesOf(10))
-        .withLocation(ServiceLocation.home);
+        .withLocation(ServiceLocation.home, address: address);
     expect(draft.location, ServiceLocation.home);
+    expect(draft.address, address);
     expect(draft.date, DateTime(2026, 10, 26));
     expect(draft.hasStartTime, isFalse);
+  });
+
+  test('a domicilio sin dirección no se permite', () {
+    expect(
+      () => const BookingDraft(service: shopAndHome)
+          .withLocation(ServiceLocation.home),
+      throwsArgumentError,
+    );
+  });
+
+  test('regresar al local descarta la dirección', () {
+    final draft = const BookingDraft(service: shopAndHome)
+        .withLocation(ServiceLocation.home, address: address)
+        .withLocation(ServiceLocation.shop);
+    expect(draft.location, ServiceLocation.shop);
+    expect(draft.address, isNull);
+  });
+
+  test('la dirección viaja con la fecha y la hora', () {
+    final draft = const BookingDraft(service: shopAndHome)
+        .withLocation(ServiceLocation.home, address: address)
+        .withDate(DateTime(2026, 10, 26))
+        .withStartTime(minutesOf(9));
+    expect(draft.address, address);
+    expect(draft.location, ServiceLocation.home);
   });
 
   test('no se puede pedir a domicilio un servicio que no lo ofrece', () {
     expect(
       () => const BookingDraft(service: shopOnly)
-          .withLocation(ServiceLocation.home),
+          .withLocation(ServiceLocation.home, address: address),
       throwsArgumentError,
     );
   });

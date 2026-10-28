@@ -12,8 +12,9 @@ class SampleOccupancyRepository implements OccupancyRepository {
     await Future.delayed(const Duration(milliseconds: 600));
 
     // PROVISIONAL: citas de demostración, iguales para todos los días,
-    // para ver el efecto de la capacidad: el local (2 lugares) está
-    // lleno de 10:00 a 11:10 (servicio + limpieza).
+    // para ver el efecto de la capacidad:
+    // - Local (2 lugares): lleno de 10:00 a 11:10 (servicio + limpieza).
+    // - Domicilio (1 equipo): ocupado de 12:00 a 13:30 (servicio + traslado).
     return DayOccupancy(
       bookings: [
         BookedInterval(
@@ -23,6 +24,10 @@ class SampleOccupancyRepository implements OccupancyRepository {
         BookedInterval(
           range: TimeRange(minutesOf(10), minutesOf(11, 10)),
           location: ServiceLocation.shop,
+        ),
+        BookedInterval(
+          range: TimeRange(minutesOf(12), minutesOf(13, 30)),
+          location: ServiceLocation.home,
         ),
       ],
     );

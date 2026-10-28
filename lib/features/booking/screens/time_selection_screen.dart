@@ -46,7 +46,7 @@ class _TimeSelectionScreenState extends State<TimeSelectionScreen> {
       // el backend con la zona America/Mexico_City.
       now: DateTime.now(),
       durationMinutes: _draft.service.durationMinutes,
-      // PROVISIONAL: siempre local hasta la tarea #14.
+      // Local o domicilio: cada uno tiene su capacidad y su margen.
       location: _draft.location,
       occupancy: occupancy,
     );
@@ -71,7 +71,8 @@ class _TimeSelectionScreenState extends State<TimeSelectionScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          '${draft.service.name}: ${formatLongDate(draft.date!)} a las '
+          '${draft.service.name} (${draft.location.label}): '
+          '${formatLongDate(draft.date!)} a las '
           '${formatClock(draft.startMinutes!)}. Lo siguiente llega pronto.',
         ),
       ),
@@ -98,8 +99,10 @@ class _TimeSelectionScreenState extends State<TimeSelectionScreen> {
                   title: Text(service.name),
                   subtitle: Text(
                     '${formatLongDate(_date)} · '
-                    '${formatDuration(service.durationMinutes)}',
+                    '${formatDuration(service.durationMinutes)}\n'
+                    '${_draft.location.label}',
                   ),
+                  isThreeLine: true,
                 ),
               ),
               const SizedBox(height: 16),

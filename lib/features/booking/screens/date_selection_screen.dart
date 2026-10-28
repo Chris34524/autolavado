@@ -11,7 +11,7 @@ class DateSelectionScreen extends StatefulWidget {
     required this.draft,
   });
 
-  /// Lo que el cliente lleva elegido (por ahora, el servicio).
+  /// Lo que el cliente lleva elegido (servicio y lugar).
   final BookingDraft draft;
 
   @override
@@ -102,8 +102,10 @@ class _DateSelectionScreenState extends State<DateSelectionScreen> {
                 title: Text(service.name),
                 subtitle: Text(
                   '${formatDuration(service.durationMinutes)} · '
-                  '${formatMxn(service.priceCents)}',
+                  '${formatMxn(service.priceCents)}\n'
+                  '${widget.draft.location.label}',
                 ),
+                isThreeLine: true,
               ),
             ),
             const SizedBox(height: 24),

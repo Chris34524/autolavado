@@ -1,3 +1,4 @@
+import 'package:autolavado_app/features/booking/domain/home_address.dart';
 import 'package:autolavado_app/features/booking/domain/service_location.dart';
 import 'package:autolavado_app/features/services/models/wash_service.dart';
 
@@ -9,14 +10,18 @@ class BookingDraft {
   const BookingDraft({
     required this.service,
     this.location = ServiceLocation.shop,
+    this.address,
     this.date,
     this.startMinutes,
   });
 
   final WashService service;
 
-  /// PROVISIONAL: local por defecto; la elección llega en la tarea #14.
+  /// Dónde se hace el servicio. Por defecto, en el local.
   final ServiceLocation location;
+
+  /// Dirección. Solo existe cuando [location] es a domicilio.
+  final HomeAddress? address;
 
   /// Día elegido, sin hora. null = todavía no elige.
   final DateTime? date;
@@ -37,16 +42,30 @@ class BookingDraft {
   }
 
   /// Cambia dónde se hace el servicio.
+  ///
+  /// A domicilio exige [address]. En el local, la dirección se descarta.
   /// Borra la hora: la disponibilidad depende del lugar.
-  BookingDraft withLocation(ServiceLocation newLocation) {
+  BookingDraft withLocation(ServiceLocation newLocation, {HomeAddress? address}) {
     final allowed = switch (newLocation) {
       ServiceLocation.shop => service.availableAtShop,
       ServiceLocation.home => service.availableAtHome,
     };
     if (!allowed) {
-      throw ArgumentError('${service.name} no está disponible en ${newLocation.name}');
+      throw ArgumentError(
+          '${service.name} no está disponible: ${newLocation.label}');
     }
-    return BookingDraft(service: service, location: newLocation, date: date);
+
+    final isHome = newLocation == ServiceLocation.home;
+    if (isHome && (address == null || !address.isComplete)) {
+      throw ArgumentError('Para servicio a domicilio se necesita la dirección.');
+    }
+
+    return BookingDraft(
+      service: service,
+      location: newLocation,
+      address: isHome ? address : null,
+      date: date,
+    );
   }
 
   /// Cambia el día. Borra la hora: la hora elegida era de otro día.
@@ -54,6 +73,7 @@ class BookingDraft {
     return BookingDraft(
       service: service,
       location: location,
+      address: address,
       date: DateTime(newDate.year, newDate.month, newDate.day),
     );
   }
@@ -66,6 +86,7 @@ class BookingDraft {
     return BookingDraft(
       service: service,
       location: location,
+      address: address,
       date: date,
       startMinutes: minutes,
     );
