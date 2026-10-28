@@ -5,6 +5,7 @@ import 'package:autolavado_app/core/utils/formatters.dart';
 import 'package:autolavado_app/features/booking/domain/availability_calculator.dart';
 import 'package:autolavado_app/features/booking/domain/booking_draft.dart';
 import 'package:autolavado_app/features/booking/domain/time_range.dart';
+import 'package:autolavado_app/features/booking/screens/customer_details_screen.dart';
 
 class TimeSelectionScreen extends StatefulWidget {
   const TimeSelectionScreen({
@@ -67,14 +68,10 @@ class _TimeSelectionScreenState extends State<TimeSelectionScreen> {
     // Borrador nuevo = el anterior + la hora.
     final draft = _draft.withStartTime(_selectedStart!);
 
-    // PROVISIONAL: aquí seguiremos a la siguiente pantalla del flujo.
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '${draft.service.name} (${draft.location.label}): '
-          '${formatLongDate(draft.date!)} a las '
-          '${formatClock(draft.startMinutes!)}. Lo siguiente llega pronto.',
-        ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CustomerDetailsScreen(draft: draft),
       ),
     );
   }

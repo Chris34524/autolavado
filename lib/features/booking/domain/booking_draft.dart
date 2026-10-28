@@ -1,5 +1,7 @@
 import 'package:autolavado_app/features/booking/domain/home_address.dart';
 import 'package:autolavado_app/features/booking/domain/service_location.dart';
+import 'package:autolavado_app/features/customers/models/customer_info.dart';
+import 'package:autolavado_app/features/customers/models/vehicle_info.dart';
 import 'package:autolavado_app/features/services/models/wash_service.dart';
 
 /// Borrador de la reserva que el cliente va armando paso a paso.
@@ -13,6 +15,8 @@ class BookingDraft {
     this.address,
     this.date,
     this.startMinutes,
+    this.customer,
+    this.vehicle,
   });
 
   final WashService service;
@@ -30,8 +34,21 @@ class BookingDraft {
   /// null = todavía no elige.
   final int? startMinutes;
 
+  /// Datos de contacto. null = todavía no los captura.
+  final CustomerInfo? customer;
+
+  /// Datos del vehículo. null = todavía no los captura.
+  final VehicleInfo? vehicle;
+
   bool get hasDate => date != null;
   bool get hasStartTime => startMinutes != null;
+  bool get hasDetails => customer != null && vehicle != null;
+
+  /// ¿Tiene todo lo necesario para enviarse a confirmar?
+  bool get isComplete =>
+      hasStartTime &&
+      hasDetails &&
+      (location != ServiceLocation.home || address != null);
 
   /// Fecha y hora de inicio juntas, o null si falta alguna.
   DateTime? get startDateTime {
@@ -65,6 +82,8 @@ class BookingDraft {
       location: newLocation,
       address: isHome ? address : null,
       date: date,
+      customer: customer,
+      vehicle: vehicle,
     );
   }
 
@@ -75,6 +94,8 @@ class BookingDraft {
       location: location,
       address: address,
       date: DateTime(newDate.year, newDate.month, newDate.day),
+      customer: customer,
+      vehicle: vehicle,
     );
   }
 
@@ -89,6 +110,28 @@ class BookingDraft {
       address: address,
       date: date,
       startMinutes: minutes,
+      customer: customer,
+      vehicle: vehicle,
+    );
+  }
+
+  /// Agrega los datos del cliente y del vehículo.
+  /// Requiere haber elegido la hora antes.
+  BookingDraft withDetails({
+    required CustomerInfo customer,
+    required VehicleInfo vehicle,
+  }) {
+    if (startMinutes == null) {
+      throw StateError('Primero se debe elegir la hora.');
+    }
+    return BookingDraft(
+      service: service,
+      location: location,
+      address: address,
+      date: date,
+      startMinutes: startMinutes,
+      customer: customer,
+      vehicle: vehicle,
     );
   }
 }

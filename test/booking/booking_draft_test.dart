@@ -4,6 +4,8 @@ import 'package:autolavado_app/features/booking/domain/booking_draft.dart';
 import 'package:autolavado_app/features/booking/domain/home_address.dart';
 import 'package:autolavado_app/features/booking/domain/service_location.dart';
 import 'package:autolavado_app/features/booking/domain/time_range.dart';
+import 'package:autolavado_app/features/customers/models/customer_info.dart';
+import 'package:autolavado_app/features/customers/models/vehicle_info.dart';
 import 'package:autolavado_app/features/services/models/wash_service.dart';
 
 const shopOnly = WashService(
@@ -24,6 +26,15 @@ const shopAndHome = WashService(
 );
 
 const address = HomeAddress(street: 'Av. Juárez 123', neighborhood: 'Centro');
+
+const customer = CustomerInfo(name: 'Ana', phone: '5512345678');
+
+const vehicle = VehicleInfo(
+  type: VehicleType.car,
+  brand: 'Nissan',
+  model: 'Versa',
+  color: 'gris',
+);
 
 void main() {
   test('un borrador nuevo solo tiene el servicio', () {
@@ -113,5 +124,36 @@ void main() {
     final withDay = original.withDate(DateTime(2026, 10, 26));
     expect(original.hasDate, isFalse);
     expect(withDay.hasDate, isTrue);
+  });
+
+  test('no se pueden capturar datos sin hora', () {
+    expect(
+      () => const BookingDraft(service: shopOnly)
+          .withDetails(customer: customer, vehicle: vehicle),
+      throwsStateError,
+    );
+  });
+
+  test('con hora y datos, el borrador está completo', () {
+    final draft = const BookingDraft(service: shopOnly)
+        .withDate(DateTime(2026, 10, 26))
+        .withStartTime(minutesOf(10));
+    expect(draft.isComplete, isFalse);
+
+    final complete = draft.withDetails(customer: customer, vehicle: vehicle);
+    expect(complete.isComplete, isTrue);
+    expect(complete.customer, customer);
+  });
+
+  test('cambiar la fecha conserva los datos del cliente', () {
+    final draft = const BookingDraft(service: shopOnly)
+        .withDate(DateTime(2026, 10, 26))
+        .withStartTime(minutesOf(10))
+        .withDetails(customer: customer, vehicle: vehicle)
+        .withDate(DateTime(2026, 10, 27));
+    expect(draft.customer, customer);
+    expect(draft.vehicle, vehicle);
+    expect(draft.hasStartTime, isFalse);
+    expect(draft.isComplete, isFalse);
   });
 }
