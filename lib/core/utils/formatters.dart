@@ -38,3 +38,12 @@ String formatClock(int minutesSinceMidnight) {
   final hour12 = hour24 % 12 == 0 ? 12 : hour24 % 12;
   return '$hour12:${minute.toString().padLeft(2, '0')} $suffix';
 }
+
+/// Teléfono de 10 dígitos en formato fácil de leer.
+/// "5512345678" -> "55 1234 5678"
+String formatMxPhone(String tenDigits) {
+  if (tenDigits.length != 10) return tenDigits;
+  return '${tenDigits.substring(0, 2)} '
+      '${tenDigits.substring(2, 6)} '
+      '${tenDigits.substring(6)}';
+}

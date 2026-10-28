@@ -32,4 +32,13 @@ void main() {
     test('mediodía', () => expect(formatClock(720), '12:00 p. m.'));
     test('medianoche', () => expect(formatClock(0), '12:00 a. m.'));
   });
+
+  group('formatMxPhone', () {
+    test('agrupa los 10 dígitos', () {
+      expect(formatMxPhone('5512345678'), '55 1234 5678');
+    });
+    test('si no son 10 dígitos lo deja igual', () {
+      expect(formatMxPhone('123'), '123');
+    });
+  });
 }

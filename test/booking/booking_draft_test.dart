@@ -156,4 +156,12 @@ void main() {
     expect(draft.hasStartTime, isFalse);
     expect(draft.isComplete, isFalse);
   });
+
+  test('endMinutes suma la duración del servicio', () {
+    final draft = const BookingDraft(service: shopAndHome) // 60 min
+        .withDate(DateTime(2026, 10, 26))
+        .withStartTime(minutesOf(10, 30));
+    expect(draft.endMinutes, minutesOf(11, 30));
+    expect(const BookingDraft(service: shopOnly).endMinutes, isNull);
+  });
 }

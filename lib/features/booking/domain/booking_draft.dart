@@ -50,6 +50,13 @@ class BookingDraft {
       hasDetails &&
       (location != ServiceLocation.home || address != null);
 
+  /// Hora en que termina el servicio (minutos desde medianoche),
+  /// o null si todavía no hay hora de inicio.
+  int? get endMinutes {
+    final start = startMinutes;
+    return start == null ? null : start + service.durationMinutes;
+  }
+
   /// Fecha y hora de inicio juntas, o null si falta alguna.
   DateTime? get startDateTime {
     final d = date;

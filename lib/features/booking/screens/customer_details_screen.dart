@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:autolavado_app/core/utils/formatters.dart';
 import 'package:autolavado_app/core/utils/validators.dart';
 import 'package:autolavado_app/features/booking/domain/booking_draft.dart';
+import 'package:autolavado_app/features/booking/screens/booking_summary_screen.dart';
 import 'package:autolavado_app/features/customers/models/customer_info.dart';
 import 'package:autolavado_app/features/customers/models/vehicle_info.dart';
 
@@ -80,15 +80,10 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
       ),
     );
 
-    // PROVISIONAL: en la tarea #16 iremos a la pantalla de resumen.
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Gracias, ${draft.customer!.name}. '
-          '${draft.vehicle!.description}, '
-          '${formatLongDate(draft.date!)} a las '
-          '${formatClock(draft.startMinutes!)}. El resumen llega pronto.',
-        ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BookingSummaryScreen(draft: draft),
       ),
     );
   }
