@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
+import 'package:autolavado_app/app/dependencies.dart';
 import 'package:autolavado_app/core/utils/formatters.dart';
 import 'package:autolavado_app/features/booking/domain/booking_draft.dart';
 import 'package:autolavado_app/features/booking/domain/service_location.dart';
+import 'package:autolavado_app/features/booking/screens/booking_confirmed_screen.dart';
 
 /// Último paso antes de confirmar: el cliente revisa todo.
-class BookingSummaryScreen extends StatelessWidget {
+class BookingSummaryScreen extends StatefulWidget {
   const BookingSummaryScreen({
     super.key,
     required this.draft,
@@ -14,18 +16,43 @@ class BookingSummaryScreen extends StatelessWidget {
   /// Debe estar completo (draft.isComplete).
   final BookingDraft draft;
 
-  void _confirm(BuildContext context) {
-    // PROVISIONAL: en la tarea #17 se registrará la cita y se abrirá
-    // WhatsApp; en la Fase 3 la creará el backend con folio real.
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('La confirmación llega en el siguiente paso.'),
-      ),
-    );
+  @override
+  State<BookingSummaryScreen> createState() => _BookingSummaryScreenState();
+}
+
+class _BookingSummaryScreenState extends State<BookingSummaryScreen> {
+  /// true mientras se envía: evita reservas duplicadas por doble toque.
+  bool _submitting = false;
+
+  Future<void> _confirm() async {
+    setState(() => _submitting = true);
+    try {
+      final confirmation = await bookingRepository.submit(widget.draft);
+      if (!mounted) return;
+
+      // Reemplaza todo el flujo por la pantalla final: así el botón
+      // "atrás" no regresa a un formulario que ya se envió.
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) =>
+              BookingConfirmedScreen(confirmation: confirmation),
+        ),
+        (route) => route.isFirst,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No pudimos registrar tu reserva. Intenta de nuevo.'),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final draft = widget.draft;
     final service = draft.service;
     final customer = draft.customer!;
     final vehicle = draft.vehicle!;
@@ -120,8 +147,15 @@ class BookingSummaryScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(16),
               child: FilledButton(
-                onPressed: () => _confirm(context),
-                child: const Text('Confirmar reserva'),
+                // null deshabilita el botón mientras se envía.
+                onPressed: _submitting ? null : _confirm,
+                child: _submitting
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Confirmar reserva'),
               ),
             ),
           ],

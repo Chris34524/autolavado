@@ -1,15 +1,29 @@
 import 'package:flutter/material.dart';
 
+import 'package:autolavado_app/app/business_info.dart';
+import 'package:autolavado_app/core/utils/whatsapp.dart';
 import 'package:autolavado_app/features/booking/screens/service_selection_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
+  Future<void> _contactWhatsapp(BuildContext context) async {
+    final opened = await openWhatsapp(
+      tenDigitPhone: businessWhatsappNumber,
+      message: 'Hola, tengo una duda sobre sus servicios.',
+    );
+    if (!opened && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No pudimos abrir WhatsApp.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Autolavado'), // PROVISIONAL
+        title: const Text(businessName),
       ),
       body: Padding(
         padding: const EdgeInsets.all(24),
@@ -40,6 +54,12 @@ class HomeScreen extends StatelessWidget {
                 );
               },
               child: const Text('Reservar lavado'),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: () => _contactWhatsapp(context),
+              icon: const Icon(Icons.chat),
+              label: const Text('Escríbenos por WhatsApp'),
             ),
           ],
         ),

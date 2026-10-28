@@ -1,4 +1,6 @@
+import 'package:autolavado_app/features/booking/data/booking_repository.dart';
 import 'package:autolavado_app/features/booking/data/occupancy_repository.dart';
+import 'package:autolavado_app/features/booking/data/sample_booking_repository.dart';
 import 'package:autolavado_app/features/booking/data/sample_occupancy_repository.dart';
 import 'package:autolavado_app/features/booking/data/sample_schedule.dart';
 import 'package:autolavado_app/features/booking/domain/business_schedule.dart';
@@ -17,3 +19,6 @@ final BusinessSchedule businessSchedule = sampleSchedule;
 
 // PROVISIONAL: se reemplazará por FirestoreOccupancyRepository.
 final OccupancyRepository occupancyRepository = SampleOccupancyRepository();
+
+// PROVISIONAL: se reemplazará por la versión con Cloud Function (tarea #27).
+final BookingRepository bookingRepository = SampleBookingRepository();
